@@ -8,6 +8,7 @@
 #include <QPushButton>
 #include <QString>
 #include "usertypedialog.h"
+#include "hospitaldatamanager.h"
 
 class LoginDialog : public QDialog
 {
@@ -21,6 +22,9 @@ public:
     QString getUsername() const;
     QString getPassword() const;
     UserType getUserType() const;
+    
+    // Set the data manager
+    void setDataManager(HospitalDataManager* dataManager);
 
 private slots:
     void onLoginClicked();
@@ -43,9 +47,5 @@ private:
     QString password;
     UserType userType;
     
-    // Sample credentials (in a real app, these would be stored securely)
-    const QString DOCTOR_USERNAME = "doctor";
-    const QString DOCTOR_PASSWORD = "doctor123";
-    const QString PATIENT_USERNAME = "patient";
-    const QString PATIENT_PASSWORD = "patient123";
+    HospitalDataManager* m_dataManager;
 };

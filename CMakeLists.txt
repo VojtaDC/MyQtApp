@@ -52,6 +52,9 @@ add_executable(MyQtApp
   src/model_inference.h
   src/usertypedialog.h
   src/logindialog.h
+  src/hospitaldatamanager.cpp
+  src/patient.cpp
+  src/doctor.cpp
 )
 
 # Link libraries

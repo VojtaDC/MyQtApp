@@ -4,7 +4,7 @@
 #include <QGridLayout>
 
 LoginDialog::LoginDialog(UserType userType, QWidget *parent)
-    : QDialog(parent), userType(userType)
+    : QDialog(parent), userType(userType), m_dataManager(nullptr)
 {
     setWindowTitle("COVID-19 X-Ray Classification - Login");
     setFixedSize(400, 250);
@@ -80,6 +80,11 @@ void LoginDialog::setupUI()
     connect(passwordEdit, &QLineEdit::textChanged, this, &LoginDialog::onTextChanged);
 }
 
+void LoginDialog::setDataManager(HospitalDataManager* dataManager)
+{
+    m_dataManager = dataManager;
+}
+
 void LoginDialog::onLoginClicked()
 {
     username = usernameEdit->text();
@@ -87,11 +92,20 @@ void LoginDialog::onLoginClicked()
     
     bool isValid = false;
     
-    // Simple authentication logic
-    if (userType == UserType::Doctor) {
-        isValid = (username == DOCTOR_USERNAME && password == DOCTOR_PASSWORD);
+    if (m_dataManager) {
+        // Use data manager to verify credentials
+        if (userType == UserType::Doctor) {
+            isValid = m_dataManager->isDoctorRegistered(username, password);
+        } else {
+            isValid = m_dataManager->isPatientRegistered(username, password);
+        }
     } else {
-        isValid = (username == PATIENT_USERNAME && password == PATIENT_PASSWORD);
+        // Fallback to default credentials for testing
+        if (userType == UserType::Doctor) {
+            isValid = (username == "doctor" && password == "password");
+        } else {
+            isValid = (username == "patient" && password == "password");
+        }
     }
     
     if (isValid) {
