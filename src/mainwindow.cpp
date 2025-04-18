@@ -1,11 +1,15 @@
 #include "mainwindow.h"
 #include <QDebug>
+#include <QFont>
 
-MainWindow::MainWindow(QWidget *parent)
+MainWindow::MainWindow(UserType userType, const QString &username, QWidget *parent)
     : QMainWindow(parent)
     , modelInference(nullptr)
+    , userType(userType)
+    , username(username)
 {
     setupUI();
+    customizeForUserType();
     
     // Initialize the model - COMMENTED OUT TO TEMPORARILY DISABLE JSON LOADING
     /*
@@ -33,6 +37,14 @@ void MainWindow::setupUI()
     
     mainLayout = new QVBoxLayout(centralWidget);
     
+    // Welcome label
+    welcomeLabel = new QLabel("", this);
+    QFont welcomeFont = welcomeLabel->font();
+    welcomeFont.setPointSize(14);
+    welcomeFont.setBold(true);
+    welcomeLabel->setFont(welcomeFont);
+    welcomeLabel->setAlignment(Qt::AlignCenter);
+    
     // Image display
     imageLabel = new QLabel(this);
     imageLabel->setMinimumSize(400, 400);
@@ -54,6 +66,8 @@ void MainWindow::setupUI()
     resultLabel->setAlignment(Qt::AlignCenter);
     
     // Add widgets to main layout
+    mainLayout->addWidget(welcomeLabel);
+    mainLayout->addSpacing(10);
     mainLayout->addWidget(imageLabel);
     mainLayout->addLayout(buttonLayout);
     mainLayout->addWidget(resultLabel);
@@ -64,7 +78,28 @@ void MainWindow::setupUI()
     
     // Window settings
     setWindowTitle("COVID-19 X-Ray Classification");
-    resize(600, 500);
+    resize(600, 550);
+}
+
+void MainWindow::customizeForUserType()
+{
+    // Adjust UI based on user type
+    if (userType == UserType::Doctor) {
+        welcomeLabel->setText(QString("Welcome Dr. %1 - Doctor Mode").arg(username));
+        welcomeLabel->setStyleSheet("QLabel { color: #0066cc; }");
+        
+        // Doctors have full access to all features
+        loadButton->setEnabled(true);
+        predictButton->setText("Diagnose");
+        
+    } else if (userType == UserType::Patient) {
+        welcomeLabel->setText(QString("Welcome %1 - Patient Mode").arg(username));
+        welcomeLabel->setStyleSheet("QLabel { color: #009933; }");
+        
+        // Patients may have limited functionality
+        loadButton->setEnabled(true); 
+        // We could disable certain features for patients if needed
+    }
 }
 
 void MainWindow::openImage()
@@ -103,7 +138,13 @@ void MainWindow::openImage()
             
             // Enable prediction
             predictButton->setEnabled(true);
-            resultLabel->setText("Ready for prediction");
+            
+            // Show different message based on user type
+            if (userType == UserType::Doctor) {
+                resultLabel->setText("Ready for diagnosis");
+            } else {
+                resultLabel->setText("Ready for analysis");
+            }
         } else {
             QMessageBox::warning(this, tr("Error"), tr("Failed to open image!"));
         }
@@ -118,9 +159,18 @@ void MainWindow::runPrediction()
     }
     
     // Display a message since model loading is disabled
-    resultLabel->setText("Model prediction is temporarily disabled.\n"
-                         "The image was loaded successfully, but the model needs to be fixed.\n"
-                         "Sample classes: COVID, Lung_Opacity, Normal, Viral Pneumonia");
+    QString message = "Model prediction is temporarily disabled.\n"
+                      "The image was loaded successfully, but the model needs to be fixed.\n"
+                      "Sample classes: COVID, Lung_Opacity, Normal, Viral Pneumonia";
+                      
+    // Add user-type specific message
+    if (userType == UserType::Doctor) {
+        message += "\n\nDoctor Mode: Detailed diagnostic information would be shown here.";
+    } else {
+        message += "\n\nPatient Mode: Simplified report would be shown here.";
+    }
+    
+    resultLabel->setText(message);
     
     /*
     // Original code - commented out

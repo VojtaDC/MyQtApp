@@ -41,13 +41,17 @@ include_directories(
   ${CMAKE_SOURCE_DIR}/external/include/Eigen
 )
 
-# Add executable target
+# Add executable target with new login-related source files
 add_executable(MyQtApp
   src/main.cpp
   src/mainwindow.cpp
   src/model_inference.cpp
+  src/usertypedialog.cpp
+  src/logindialog.cpp
   src/mainwindow.h
   src/model_inference.h
+  src/usertypedialog.h
+  src/logindialog.h
 )
 
 # Link libraries

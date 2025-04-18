@@ -11,13 +11,14 @@
 #include <QMessageBox>
 #include <opencv2/opencv.hpp>
 #include "model_inference.h"
+#include "usertypedialog.h"
 
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
 
 public:
-    MainWindow(QWidget *parent = nullptr);
+    MainWindow(UserType userType, const QString &username, QWidget *parent = nullptr);
     ~MainWindow();
 
 private slots:
@@ -26,9 +27,14 @@ private slots:
 
 private:
     void setupUI();
+    void customizeForUserType();
 
+    UserType userType;
+    QString username;
+    
     QWidget *centralWidget;
     QVBoxLayout *mainLayout;
+    QLabel *welcomeLabel;
     QLabel *imageLabel;
     QPushButton *loadButton;
     QPushButton *predictButton;
