@@ -1,0 +1,114 @@
+# C++ objects and libs
+*.slo
+*.lo
+*.o
+*.a
+*.la
+*.lai
+*.so
+*.so.*
+*.dll
+*.dylib
+
+# Qt-es
+object_script.*.Release
+object_script.*.Debug
+*_plugin_import.cpp
+/.qmake.cache
+/.qmake.stash
+*.pro.user
+*.pro.user.*
+*.qbs.user
+*.qbs.user.*
+*.moc
+moc_*.cpp
+moc_*.h
+qrc_*.cpp
+ui_*.h
+*.qmlc
+*.jsc
+Makefile*
+*build-*
+*.qm
+*.prl
+
+# Qt unit tests
+target_wrapper.*
+
+# QtCreator
+*.autosave
+*.qmlproject.user
+*.qmlproject.user.*
+
+# QtCreator CMake
+CMakeLists.txt.user*
+CMakeCache.txt
+CMakeFiles/
+CMakeScripts/
+cmake_install.cmake
+install_manifest.txt
+
+# QtCreator local machine specific files for imported projects
+*creator.user*
+
+# Build directories
+build/
+Debug/
+Release/
+
+# Python virtual environment
+venv-fdeep/
+
+# macOS specific
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Windows specific
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Large data files
+*.zip
+data/COVID/images/
+data/Lung_Opacity/images/
+data/Normal/images/
+data/Viral\ Pneumonia/images/
+
+# Backup directories
+backup/
+
+# Build artifacts
+*.exe
+*.app
+
+# Large external directories
+Qt5.12.0/
+external/
+
+# Large model files
+*.h5
+*.json
+
+# Data directory
+data/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# macOS
+Icon
+._*
+
+# IDE files
+.idea/
+.vscode/
+*.code-workspace
+.history/
+
+# Others
+*.log
+*.bak
