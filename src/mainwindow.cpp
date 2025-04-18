@@ -1,37 +1,46 @@
 #include "mainwindow.h"
+#include "ui_mainwindow.h"
 #include <QDebug>
 #include <QFont>
 #include <QStandardItemModel>
-#include <QScrollArea>
 #include <QDateTime>
 #include <QInputDialog>
 #include <QFormLayout>
 #include <QTextEdit>
 #include <QDialogButtonBox>
 #include <QDialog>
-#include <QHeaderView>    // voor horizontalHeader()
-#include <QComboBox>      // voor QComboBox in je forms
-#include <algorithm>      // voor std::max_element
+#include <QHeaderView>
+#include <QComboBox>
+#include <algorithm>
 #include <vector>
 
 MainWindow::MainWindow(UserType userType, const QString &username, QWidget *parent)
-    : QMainWindow(parent), userType(userType), username(username), 
+    : QMainWindow(parent), ui(new Ui::MainWindow), userType(userType), username(username),
       modelInference(new ModelInference("epoch_30.json")), hospitalData(new HospitalDataManager())
 {
-    setWindowTitle("Hospital Management System");
-    setMinimumSize(800, 600);
+    ui->setupUi(this);
     
     // Initialize the hospital data system
     initializeHospitalData();
     
-    setupUI();
+    // Set welcome message based on user type
+    QString welcomeText = (userType == UserType::Doctor) ? 
+        "Welcome, Dr. " + username : "Welcome, " + username;
+    ui->welcomeLabel->setText(welcomeText);
+    
+    // Customize interface based on user type
     customizeForUserType();
+    
+    // Connect signals that aren't managed by Qt Designer auto-connections
+    connect(ui->patientsTableView->selectionModel(), &QItemSelectionModel::selectionChanged,
+            this, &MainWindow::onPatientSelectionChanged);
 }
 
 MainWindow::~MainWindow()
 {
     delete modelInference;
     delete hospitalData;
+    delete ui;
 }
 
 void MainWindow::initializeHospitalData()
@@ -71,130 +80,31 @@ void MainWindow::initializeHospitalData()
     }
 }
 
-void MainWindow::setupUI()
+void MainWindow::customizeForUserType()
 {
-    centralWidget = new QWidget(this);
-    setCentralWidget(centralWidget);
-    
-    mainLayout = new QVBoxLayout(centralWidget);
-    
-    // Welcome message
-    welcomeLabel = new QLabel(this);
-    QFont titleFont = welcomeLabel->font();
-    titleFont.setPointSize(16);
-    titleFont.setBold(true);
-    welcomeLabel->setFont(titleFont);
-    welcomeLabel->setAlignment(Qt::AlignCenter);
-    
-    // Set welcome message based on user type
-    QString welcomeText = (userType == UserType::Doctor) ? 
-        "Welcome, Dr. " + username : "Welcome, " + username;
-    welcomeLabel->setText(welcomeText);
-    
-    // Tab widget for different sections
-    tabWidget = new QTabWidget(this);
-    
-    // Setup specific UIs
-    setupImageAnalysisUI();
-    
+    // Set window title based on user type
     if (userType == UserType::Doctor) {
-        setupDoctorUI();
+        setWindowTitle("Hospital Management System - Doctor Dashboard");
+        
+        // Show doctor tabs, hide patient tabs
+        ui->tabWidget->removeTab(ui->tabWidget->indexOf(ui->patientProfileTab));
+        
+        // Setup patient table
+        setupPatientTable();
     } else {
-        setupPatientUI();
+        setWindowTitle("Hospital Management System - Patient Dashboard");
+        
+        // Show patient tabs, hide doctor tabs
+        ui->tabWidget->removeTab(ui->tabWidget->indexOf(ui->patientManagementTab));
+        
+        // Display patient profile
+        displayPatientProfile();
     }
-    
-    mainLayout->addWidget(welcomeLabel);
-    mainLayout->addWidget(tabWidget);
 }
 
-void MainWindow::setupImageAnalysisUI()
+void MainWindow::setupPatientTable()
 {
-    // Create widget for analysis tab
-    analysisWidget = new QWidget();
-    analysisLayout = new QVBoxLayout(analysisWidget);
-    
-    // Image display
-    imageLabel = new QLabel(this);
-    imageLabel->setAlignment(Qt::AlignCenter);
-    imageLabel->setMinimumSize(400, 400);
-    imageLabel->setText("No image loaded");
-    imageLabel->setStyleSheet("border: 1px solid #cccccc;");
-    
-    // Button layout
-    QHBoxLayout *buttonLayout = new QHBoxLayout();
-    loadButton = new QPushButton("Load X-Ray Image", this);
-    predictButton = new QPushButton("Analyze Image", this);
-    predictButton->setEnabled(false);
-    
-    buttonLayout->addWidget(loadButton);
-    buttonLayout->addWidget(predictButton);
-    
-    // Result label
-    resultLabel = new QLabel(this);
-    resultLabel->setAlignment(Qt::AlignCenter);
-    QFont resultFont = resultLabel->font();
-    resultFont.setPointSize(14);
-    resultLabel->setFont(resultFont);
-    
-    // Add widgets to layout
-    analysisLayout->addWidget(imageLabel);
-    analysisLayout->addLayout(buttonLayout);
-    analysisLayout->addWidget(resultLabel);
-    
-    // Add to tab widget
-    tabWidget->addTab(analysisWidget, "X-Ray Analysis");
-    
-    // Connect signals
-    connect(loadButton, &QPushButton::clicked, this, &MainWindow::openImage);
-    connect(predictButton, &QPushButton::clicked, this, &MainWindow::runPrediction);
-}
-
-void MainWindow::setupDoctorUI()
-{
-    // Create widget for patient management tab
-    patientManagementWidget = new QWidget();
-    patientManagementLayout = new QVBoxLayout(patientManagementWidget);
-    
-    // Search area
-    QHBoxLayout *searchLayout = new QHBoxLayout();
-    searchPatientEdit = new QLineEdit(this);
-    searchPatientEdit->setPlaceholderText("Enter patient name or ID");
-    searchPatientButton = new QPushButton("Search", this);
-    searchLayout->addWidget(searchPatientEdit, 1);
-    searchLayout->addWidget(searchPatientButton);
-    
-    // Patients table view
-    patientsTableView = new QTableView(this);
-    patientsTableView->setEditTriggers(QAbstractItemView::NoEditTriggers);
-    patientsTableView->setSelectionBehavior(QAbstractItemView::SelectRows);
-    patientsTableView->setSelectionMode(QAbstractItemView::SingleSelection);
-    
-    // Patient action buttons
-    QHBoxLayout *actionButtonsLayout = new QHBoxLayout();
-    viewPatientButton = new QPushButton("View Details", this);
-    addPatientButton = new QPushButton("Add New Patient", this);
-    updatePatientButton = new QPushButton("Update Patient", this);
-    addRecordButton = new QPushButton("Add Medical Record", this);
-    
-    actionButtonsLayout->addWidget(viewPatientButton);
-    actionButtonsLayout->addWidget(addPatientButton);
-    actionButtonsLayout->addWidget(updatePatientButton);
-    actionButtonsLayout->addWidget(addRecordButton);
-    
-    // Disable buttons until a patient is selected
-    viewPatientButton->setEnabled(false);
-    updatePatientButton->setEnabled(false);
-    addRecordButton->setEnabled(false);
-    
-    // Add everything to the layout
-    patientManagementLayout->addLayout(searchLayout);
-    patientManagementLayout->addWidget(patientsTableView, 1);
-    patientManagementLayout->addLayout(actionButtonsLayout);
-    
-    // Add to tab widget
-    tabWidget->addTab(patientManagementWidget, "Patient Management");
-    
-    // Set up the initial table data
+    // Set up the patient table
     QList<Patient> patients = hospitalData->getAllPatients();
     QStandardItemModel *model = new QStandardItemModel(patients.size(), 4, this);
     model->setHorizontalHeaderLabels({"ID", "Name", "Date of Birth", "Gender"});
@@ -207,67 +117,16 @@ void MainWindow::setupDoctorUI()
         model->setItem(i, 3, new QStandardItem(patient.getGender()));
     }
     
-    patientsTableView->setModel(model);
-    patientsTableView->horizontalHeader()->setStretchLastSection(true);
-    patientsTableView->resizeColumnsToContents();
-    
-    // Connect signals
-    connect(searchPatientButton, &QPushButton::clicked, this, &MainWindow::searchPatients);
-    connect(viewPatientButton, &QPushButton::clicked, this, &MainWindow::viewPatientDetails);
-    connect(addPatientButton, &QPushButton::clicked, this, &MainWindow::addNewPatient);
-    connect(updatePatientButton, &QPushButton::clicked, this, &MainWindow::updatePatientRecord);
-    connect(addRecordButton, &QPushButton::clicked, this, &MainWindow::addMedicalRecord);
-    
-    // Enable action buttons when a patient is selected
-    connect(patientsTableView->selectionModel(), &QItemSelectionModel::selectionChanged, [this]() {
-        bool hasSelection = patientsTableView->selectionModel()->hasSelection();
-        viewPatientButton->setEnabled(hasSelection);
-        updatePatientButton->setEnabled(hasSelection);
-        addRecordButton->setEnabled(hasSelection);
-    });
+    ui->patientsTableView->setModel(model);
+    ui->patientsTableView->horizontalHeader()->setStretchLastSection(true);
+    ui->patientsTableView->setEditTriggers(QAbstractItemView::NoEditTriggers);
+    ui->patientsTableView->setSelectionBehavior(QAbstractItemView::SelectRows);
+    ui->patientsTableView->setSelectionMode(QAbstractItemView::SingleSelection);
+    ui->patientsTableView->resizeColumnsToContents();
 }
 
-void MainWindow::setupPatientUI()
+void MainWindow::displayPatientProfile()
 {
-    // Create widget for patient profile tab
-    patientProfileWidget = new QWidget();
-    patientProfileLayout = new QVBoxLayout(patientProfileWidget);
-    
-    // Patient information
-    QFont headerFont;
-    headerFont.setPointSize(14);
-    headerFont.setBold(true);
-    
-    QLabel *infoHeader = new QLabel("Patient Information", this);
-    infoHeader->setFont(headerFont);
-    
-    patientInfoLabel = new QLabel(this);
-    patientInfoLabel->setWordWrap(true);
-    patientInfoLabel->setStyleSheet("background-color: #f0f0f0; padding: 10px; border-radius: 5px;");
-    
-    QLabel *historyHeader = new QLabel("Medical History", this);
-    historyHeader->setFont(headerFont);
-    
-    medicalHistoryLabel = new QLabel(this);
-    medicalHistoryLabel->setWordWrap(true);
-    medicalHistoryLabel->setStyleSheet("background-color: #f0f0f0; padding: 10px; border-radius: 5px;");
-    
-    // Use scroll area for medical history
-    QScrollArea *scrollArea = new QScrollArea();
-    scrollArea->setWidgetResizable(true);
-    scrollArea->setWidget(medicalHistoryLabel);
-    
-    // Add widgets to layout
-    patientProfileLayout->addWidget(infoHeader);
-    patientProfileLayout->addWidget(patientInfoLabel);
-    patientProfileLayout->addSpacing(20);
-    patientProfileLayout->addWidget(historyHeader);
-    patientProfileLayout->addWidget(scrollArea, 1);
-    
-    // Add to tab widget
-    tabWidget->addTab(patientProfileWidget, "My Profile");
-    
-    // Display current patient information
     if (!currentPatient.getId().isEmpty()) {
         QString infoText = "<p><b>Name:</b> " + currentPatient.getName() + "</p>";
         infoText += "<p><b>ID:</b> " + currentPatient.getId() + "</p>";
@@ -275,7 +134,7 @@ void MainWindow::setupPatientUI()
         infoText += "<p><b>Gender:</b> " + currentPatient.getGender() + "</p>";
         infoText += "<p><b>Contact:</b> " + currentPatient.getContactInfo() + "</p>";
         
-        patientInfoLabel->setText(infoText);
+        ui->patientInfoLabel->setText(infoText);
         
         QString historyText = "";
         QList<QString> medicalHistory = currentPatient.getMedicalHistory();
@@ -287,24 +146,14 @@ void MainWindow::setupPatientUI()
             }
         }
         
-        medicalHistoryLabel->setText(historyText);
+        ui->medicalHistoryLabel->setText(historyText);
     } else {
-        patientInfoLabel->setText("Patient information not available.");
-        medicalHistoryLabel->setText("No medical records available.");
+        ui->patientInfoLabel->setText("Patient information not available.");
+        ui->medicalHistoryLabel->setText("No medical records available.");
     }
 }
 
-void MainWindow::customizeForUserType()
-{
-    // Set window title based on user type
-    if (userType == UserType::Doctor) {
-        setWindowTitle("Hospital Management System - Doctor Dashboard");
-    } else {
-        setWindowTitle("Hospital Management System - Patient Dashboard");
-    }
-}
-
-void MainWindow::openImage()
+void MainWindow::on_loadButton_clicked()
 {
     QString fileName = QFileDialog::getOpenFileName(this, "Open X-Ray Image",
                                                    "", "Image Files (*.png *.jpg *.jpeg)");
@@ -324,13 +173,13 @@ void MainWindow::openImage()
             QPixmap pixmap = QPixmap::fromImage(qimg);
             
             // Scale pixmap while keeping aspect ratio
-            pixmap = pixmap.scaled(imageLabel->width(), imageLabel->height(),
+            pixmap = pixmap.scaled(ui->imageLabel->width(), ui->imageLabel->height(),
                                   Qt::KeepAspectRatio, Qt::SmoothTransformation);
             
-            imageLabel->setPixmap(pixmap);
+            ui->imageLabel->setPixmap(pixmap);
             
             // Enable prediction button
-            predictButton->setEnabled(true);
+            ui->predictButton->setEnabled(true);
         } else {
             QMessageBox::warning(this, "Image Loading Error",
                                "Failed to load the selected image.");
@@ -338,7 +187,7 @@ void MainWindow::openImage()
     }
 }
 
-void MainWindow::runPrediction()
+void MainWindow::on_predictButton_clicked()
 {
     if (currentImage.empty()) {
         QMessageBox::warning(this, "Error", "No image loaded to analyze");
@@ -359,12 +208,12 @@ void MainWindow::runPrediction()
         std::string result = classes[max_idx] + " (Confidence: " + 
                              std::to_string(static_cast<int>(confidence)) + "%)";
         
-        resultLabel->setText("Analysis Result: " + QString::fromStdString(result));
+        ui->resultLabel->setText("Analysis Result: " + QString::fromStdString(result));
         
         // Add to medical records if appropriate
         if (userType == UserType::Doctor) {
             // Get selected patient if any
-            QModelIndexList selection = patientsTableView->selectionModel()->selectedRows();
+            QModelIndexList selection = ui->patientsTableView->selectionModel()->selectedRows();
             if (!selection.isEmpty()) {
                 QModelIndex index = selection.at(0);
                 QString patientId = index.sibling(index.row(), 0).data().toString();
@@ -388,15 +237,15 @@ void MainWindow::runPrediction()
             }
         }
     } catch (const std::exception &e) {
-        resultLabel->setText("Error: Failed to analyze the image");
+        ui->resultLabel->setText("Error: Failed to analyze the image");
         QMessageBox::critical(this, "Analysis Error", 
                             QString("An error occurred during analysis: %1").arg(e.what()));
     }
 }
 
-void MainWindow::searchPatients()
+void MainWindow::on_searchPatientButton_clicked()
 {
-    QString searchTerm = searchPatientEdit->text().trimmed();
+    QString searchTerm = ui->searchPatientEdit->text().trimmed();
     
     if (searchTerm.isEmpty()) {
         // If search term is empty, show all patients
@@ -412,7 +261,7 @@ void MainWindow::searchPatients()
             model->setItem(i, 3, new QStandardItem(patient.getGender()));
         }
         
-        patientsTableView->setModel(model);
+        ui->patientsTableView->setModel(model);
     } else {
         // Search for matching patients
         QList<Patient> matchingPatients = hospitalData->searchPatients(searchTerm);
@@ -428,16 +277,24 @@ void MainWindow::searchPatients()
             model->setItem(i, 3, new QStandardItem(patient.getGender()));
         }
         
-        patientsTableView->setModel(model);
+        ui->patientsTableView->setModel(model);
     }
     
-    patientsTableView->resizeColumnsToContents();
+    ui->patientsTableView->resizeColumnsToContents();
 }
 
-void MainWindow::viewPatientDetails()
+void MainWindow::onPatientSelectionChanged()
+{
+    bool hasSelection = ui->patientsTableView->selectionModel()->hasSelection();
+    ui->viewPatientButton->setEnabled(hasSelection);
+    ui->updatePatientButton->setEnabled(hasSelection);
+    ui->addRecordButton->setEnabled(hasSelection);
+}
+
+void MainWindow::on_viewPatientButton_clicked()
 {
     // Get selected patient
-    QModelIndexList selection = patientsTableView->selectionModel()->selectedRows();
+    QModelIndexList selection = ui->patientsTableView->selectionModel()->selectedRows();
     if (selection.isEmpty()) {
         QMessageBox::warning(this, "No Selection", "Please select a patient first");
         return;
@@ -512,7 +369,7 @@ void MainWindow::viewPatientDetails()
     dialog.exec();
 }
 
-void MainWindow::addNewPatient()
+void MainWindow::on_addPatientButton_clicked()
 {
     // Create dialog for adding new patient
     QDialog dialog(this);
@@ -561,7 +418,7 @@ void MainWindow::addNewPatient()
             dialog.accept();
             
             // Refresh patients table
-            searchPatients();
+            on_searchPatientButton_clicked();
         } else {
             QMessageBox::critical(&dialog, "Error", "Failed to add patient");
         }
@@ -572,10 +429,10 @@ void MainWindow::addNewPatient()
     dialog.exec();
 }
 
-void MainWindow::updatePatientRecord()
+void MainWindow::on_updatePatientButton_clicked()
 {
     // Get selected patient
-    QModelIndexList selection = patientsTableView->selectionModel()->selectedRows();
+    QModelIndexList selection = ui->patientsTableView->selectionModel()->selectedRows();
     if (selection.isEmpty()) {
         QMessageBox::warning(this, "No Selection", "Please select a patient first");
         return;
@@ -636,7 +493,7 @@ void MainWindow::updatePatientRecord()
             dialog.accept();
             
             // Refresh patients table
-            searchPatients();
+            on_searchPatientButton_clicked();
         } else {
             QMessageBox::critical(&dialog, "Error", "Failed to update patient");
         }
@@ -647,10 +504,10 @@ void MainWindow::updatePatientRecord()
     dialog.exec();
 }
 
-void MainWindow::addMedicalRecord()
+void MainWindow::on_addRecordButton_clicked()
 {
     // Get selected patient
-    QModelIndexList selection = patientsTableView->selectionModel()->selectedRows();
+    QModelIndexList selection = ui->patientsTableView->selectionModel()->selectedRows();
     if (selection.isEmpty()) {
         QMessageBox::warning(this, "No Selection", "Please select a patient first");
         return;
@@ -710,4 +567,9 @@ void MainWindow::addMedicalRecord()
     connect(buttonBox, &QDialogButtonBox::rejected, &dialog, &QDialog::reject);
     
     dialog.exec();
+}
+
+void MainWindow::on_actionExit_triggered()
+{
+    close();
 }

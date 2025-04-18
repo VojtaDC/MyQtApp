@@ -1,21 +1,19 @@
 #pragma once
 
 #include <QDialog>
-#include <QVBoxLayout>
-#include <QHBoxLayout>
-#include <QLabel>
-#include <QLineEdit>
-#include <QPushButton>
-#include <QString>
 #include "usertypedialog.h"
 #include "hospitaldatamanager.h"
+
+namespace Ui {
+class LoginDialog;
+}
 
 class LoginDialog : public QDialog
 {
     Q_OBJECT
 
 public:
-    LoginDialog(UserType userType, QWidget *parent = nullptr);
+    explicit LoginDialog(UserType userType, QWidget *parent = nullptr);
     ~LoginDialog();
     
     // Methods to get login information
@@ -27,25 +25,16 @@ public:
     void setDataManager(HospitalDataManager* dataManager);
 
 private slots:
-    void onLoginClicked();
-    void onCancelClicked();
-    void onTextChanged();
+    void on_loginButton_clicked();
+    void on_cancelButton_clicked();
+    void on_usernameEdit_textChanged(const QString &text);
+    void on_passwordEdit_textChanged(const QString &text);
+    void updateLoginButtonState();
 
 private:
-    void setupUI();
-    
-    QLabel *titleLabel;
-    QLabel *usernameLabel;
-    QLabel *passwordLabel;
-    QLineEdit *usernameEdit;
-    QLineEdit *passwordEdit;
-    QPushButton *loginButton;
-    QPushButton *cancelButton;
-    QVBoxLayout *mainLayout;
-    
+    Ui::LoginDialog *ui;
     QString username;
     QString password;
     UserType userType;
-    
     HospitalDataManager* m_dataManager;
 };

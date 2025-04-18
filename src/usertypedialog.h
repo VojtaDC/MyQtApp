@@ -1,41 +1,34 @@
 #pragma once
 
 #include <QDialog>
-#include <QVBoxLayout>
-#include <QHBoxLayout>
-#include <QPushButton>
-#include <QLabel>
 #include <QString>
 
-// Enumeration to represent user types
+// Define the UserType enum
 enum class UserType {
     Doctor,
     Patient,
     Unknown
 };
 
+namespace Ui {
+class UserTypeDialog;
+}
+
 class UserTypeDialog : public QDialog
 {
     Q_OBJECT
 
 public:
-    UserTypeDialog(QWidget *parent = nullptr);
+    explicit UserTypeDialog(QWidget *parent = nullptr);
     ~UserTypeDialog();
     
-    // Method to get the selected user type
     UserType getUserType() const;
 
 private slots:
-    void doctorSelected();
-    void patientSelected();
+    void on_doctorButton_clicked();
+    void on_patientButton_clicked();
 
 private:
-    void setupUI();
-    
-    QPushButton *doctorButton;
-    QPushButton *patientButton;
-    QLabel *titleLabel;
-    QVBoxLayout *mainLayout;
-    
+    Ui::UserTypeDialog *ui;
     UserType selectedType;
 };

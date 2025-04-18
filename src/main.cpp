@@ -1,8 +1,10 @@
-#include <iostream>
 #include <QApplication>
-#include "mainwindow.h"
+#include <QMessageBox>
+#include <iostream>
+
 #include "usertypedialog.h"
 #include "logindialog.h"
+#include "mainwindow.h"
 #include "hospitaldatamanager.h"
 
 int main(int argc, char** argv) {
@@ -38,18 +40,19 @@ int main(int argc, char** argv) {
             return 0;
         }
         
-        // If login was successful, get the username and show the main window
+        // Get login credentials
         QString username = loginDialog.getUsername();
         
-        // Create and show the main window with user type and username
+        // Finally, show the main application window
         MainWindow mainWindow(selectedType, username);
         mainWindow.show();
         
-        // Start the Qt event loop
+        // Run the application
         return app.exec();
     }
     catch (const std::exception& e) {
-        std::cerr << "Error: " << e.what() << std::endl;
+        QMessageBox::critical(nullptr, "Critical Error", 
+                             QString("An unhandled error occurred: %1").arg(e.what()));
         return 1;
     }
 }
