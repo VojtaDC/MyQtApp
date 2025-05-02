@@ -29,14 +29,14 @@ A Qt application for COVID-19 detection from X-ray images using deep learning.
    ```bash
    mkdir build && cd build
    cmake ..
-   make
+   make 
    ```
 
 4. Run the application:
    ```bash
    ./MyQtApp.app/Contents/MacOS/MyQtApp
    ```
-
+Ik ben vojta de coninck en ik ben deze app aan het testen 
 ### Windows
 
 1. Install dependencies:
