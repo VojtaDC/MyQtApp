@@ -2,28 +2,19 @@
 #include <QJsonArray>
 
 Patient::Patient()
-    : m_id(""), m_name(""), m_dateOfBirth(""), m_gender(""), m_contactInfo("")
+    : Person(), m_dateOfBirth(""), m_gender("")
 {
 }
 
 Patient::Patient(const QString& id, const QString& name, const QString& dateOfBirth, 
                  const QString& gender, const QString& contactInfo)
-    : m_id(id), m_name(name), m_dateOfBirth(dateOfBirth), m_gender(gender), m_contactInfo(contactInfo)
+    : Person(id, name, contactInfo), m_dateOfBirth(dateOfBirth), m_gender(gender)
 {
 }
 
 Patient::~Patient()
 {
-}
-
-QString Patient::getId() const
-{
-    return m_id;
-}
-
-QString Patient::getName() const
-{
-    return m_name;
+    // Specific cleanup for Patient if needed
 }
 
 QString Patient::getDateOfBirth() const
@@ -36,24 +27,10 @@ QString Patient::getGender() const
     return m_gender;
 }
 
-QString Patient::getContactInfo() const
+const QList<QString>& Patient::getMedicalHistory() const
 {
-    return m_contactInfo;
-}
-
-QList<QString> Patient::getMedicalHistory() const
-{
+    // Return a const reference to the medical history data
     return m_medicalHistory;
-}
-
-void Patient::setId(const QString& id)
-{
-    m_id = id;
-}
-
-void Patient::setName(const QString& name)
-{
-    m_name = name;
 }
 
 void Patient::setDateOfBirth(const QString& dateOfBirth)
@@ -66,11 +43,6 @@ void Patient::setGender(const QString& gender)
     m_gender = gender;
 }
 
-void Patient::setContactInfo(const QString& contactInfo)
-{
-    m_contactInfo = contactInfo;
-}
-
 void Patient::addMedicalRecord(const QString& record)
 {
     m_medicalHistory.append(record);
@@ -78,12 +50,12 @@ void Patient::addMedicalRecord(const QString& record)
 
 QJsonObject Patient::toJson() const
 {
-    QJsonObject json;
-    json["id"] = m_id;
-    json["name"] = m_name;
+    // Start with base class's JSON representation
+    QJsonObject json = Person::toJson();
+    
+    // Add specialized fields
     json["dateOfBirth"] = m_dateOfBirth;
     json["gender"] = m_gender;
-    json["contactInfo"] = m_contactInfo;
     
     QJsonArray historyArray;
     for (const QString& record : m_medicalHistory) {

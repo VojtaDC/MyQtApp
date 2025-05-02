@@ -1,0 +1,27 @@
+fmt_autogen/timestamp: \
+	/Users/vojtadeconinck/MyQtApp/build_new/_deps/fmt-src/CMakeLists.txt \
+	/Users/vojtadeconinck/MyQtApp/build_new/_deps/fmt-src/include/fmt/args.h \
+	/Users/vojtadeconinck/MyQtApp/build_new/_deps/fmt-src/include/fmt/chrono.h \
+	/Users/vojtadeconinck/MyQtApp/build_new/_deps/fmt-src/include/fmt/color.h \
+	/Users/vojtadeconinck/MyQtApp/build_new/_deps/fmt-src/include/fmt/compile.h \
+	/Users/vojtadeconinck/MyQtApp/build_new/_deps/fmt-src/include/fmt/core.h \
+	/Users/vojtadeconinck/MyQtApp/build_new/_deps/fmt-src/include/fmt/format-inl.h \
+	/Users/vojtadeconinck/MyQtApp/build_new/_deps/fmt-src/include/fmt/format.h \
+	/Users/vojtadeconinck/MyQtApp/build_new/_deps/fmt-src/include/fmt/os.h \
+	/Users/vojtadeconinck/MyQtApp/build_new/_deps/fmt-src/include/fmt/ostream.h \
+	/Users/vojtadeconinck/MyQtApp/build_new/_deps/fmt-src/include/fmt/printf.h \
+	/Users/vojtadeconinck/MyQtApp/build_new/_deps/fmt-src/include/fmt/ranges.h \
+	/Users/vojtadeconinck/MyQtApp/build_new/_deps/fmt-src/include/fmt/std.h \
+	/Users/vojtadeconinck/MyQtApp/build_new/_deps/fmt-src/include/fmt/xchar.h \
+	/Users/vojtadeconinck/MyQtApp/build_new/_deps/fmt-src/src/format.cc \
+	/Users/vojtadeconinck/MyQtApp/build_new/_deps/fmt-src/src/os.cc \
+	/Users/vojtadeconinck/MyQtApp/build_new/_deps/fmt-src/support/cmake/JoinPaths.cmake \
+	/Users/vojtadeconinck/MyQtApp/build_new/_deps/fmt-src/support/cmake/fmt-config.cmake.in \
+	/Users/vojtadeconinck/MyQtApp/build_new/_deps/fmt-src/support/cmake/fmt.pc.in \
+	/opt/homebrew/share/cmake/Modules/BasicConfigVersion-AnyNewerVersion.cmake.in \
+	/opt/homebrew/share/cmake/Modules/CMakePackageConfigHelpers.cmake \
+	/opt/homebrew/share/cmake/Modules/CMakeParseArguments.cmake \
+	/opt/homebrew/share/cmake/Modules/CheckCXXCompilerFlag.cmake \
+	/opt/homebrew/share/cmake/Modules/GNUInstallDirs.cmake \
+	/opt/homebrew/share/cmake/Modules/WriteBasicConfigVersionFile.cmake \
+	/opt/homebrew/bin/cmake

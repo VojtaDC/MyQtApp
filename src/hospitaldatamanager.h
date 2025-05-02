@@ -4,8 +4,23 @@
 #include <QList>
 #include <QMap>
 #include <QDir>
+#include <filesystem>
+#include <span>
+#include <vector>
+#include <memory>
+#include <regex>
+#include <mutex>
+#include <condition_variable>
 #include "patient.h"
 #include "doctor.h"
+
+// Enum class for user roles
+enum class UserRole {
+    Doctor,
+    Patient,
+    Administrator,
+    Unknown
+};
 
 // Class to handle file system operations for hospital data
 class HospitalDataManager
@@ -33,24 +48,45 @@ public:
     // Check if users exist in the system
     bool isDoctorRegistered(const QString& username, const QString& password) const;
     bool isPatientRegistered(const QString& username, const QString& password) const;
+    bool validatePatientId(const QString& patientId) const;
     
     // Get the data directory
-    QString getDataDirectory() const;
+    std::filesystem::path getDataDirectory() const;
+    
+    // Metadata processing - uses regex
+    bool loadMetadata(const std::string& filePath);
+    
+    // Directory operations
+    bool saveDirectory(const std::filesystem::path& sourcePath, const std::filesystem::path& destPath);
 
 private:
-    QString m_dataDirectory;
-    QString m_patientsDirectory;
-    QString m_doctorsDirectory;
+    std::filesystem::path m_dataDirectory;
+    std::filesystem::path m_patientsDirectory;
+    std::filesystem::path m_doctorsDirectory;
+    std::filesystem::path m_tempDirectory;
     
     // Helper methods
-    bool createDirectoryIfNotExists(const QString& path);
+    bool createDirectoryIfNotExists(const std::filesystem::path& path);
     QString generateUniqueId() const;
     
-    // Cache for frequently accessed data
-    mutable QMap<QString, Patient> m_patientCache;
-    mutable QMap<QString, Doctor> m_doctorCache;
+    // Recursive directory saving - tail recursive implementation
+    bool saveDirectoryRecursive(const std::filesystem::path& sourcePath, 
+                               const std::filesystem::path& destPath,
+                               std::vector<std::filesystem::path>& pendingPaths);
+    
+    // Cache for frequently accessed data with thread safety
+    mutable std::mutex m_cacheMutex;
+    mutable std::unordered_map<QString, Patient> m_patientCache;
+    mutable std::unordered_map<QString, Doctor> m_doctorCache;
+    
+    // Regex for patient ID validation
+    std::regex m_patientIdRegex;
     
     // Internal file management
-    bool writeJsonToFile(const QString& filePath, const QJsonObject& jsonObj) const;
-    QJsonObject readJsonFromFile(const QString& filePath) const;
+    bool writeJsonToFile(const std::filesystem::path& filePath, const QJsonObject& jsonObj) const;
+    QJsonObject readJsonFromFile(const std::filesystem::path& filePath) const;
+    
+    // Template function for statistics calculation over any range
+    template<class Range>
+    auto calculateStatistics(const Range& range) const -> std::pair<double, double>;
 };

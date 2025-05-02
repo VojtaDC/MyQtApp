@@ -137,7 +137,7 @@ void MainWindow::displayPatientProfile()
         ui->patientInfoLabel->setText(infoText);
         
         QString historyText = "";
-        QList<QString> medicalHistory = currentPatient.getMedicalHistory();
+        const QList<QString>& medicalHistory = currentPatient.getMedicalHistory();
         if (medicalHistory.isEmpty()) {
             historyText = "No medical records available.";
         } else {
@@ -338,7 +338,7 @@ void MainWindow::on_viewPatientButton_clicked()
     historyHeader->setFont(headerFont);
     
     QString historyText = "";
-    QList<QString> medicalHistory = patient.getMedicalHistory();
+    const QList<QString>& medicalHistory = patient.getMedicalHistory();
     if (medicalHistory.isEmpty()) {
         historyText = "No medical records available.";
     } else {
