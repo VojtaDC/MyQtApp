@@ -1,7 +1,11 @@
-cmake_minimum_required(VERSION 3.16) # Need 3.16+ for Qt6
+cmake_minimum_required(VERSION 3.16) # Need 3.16+ for modern CMake features
 
 # Option for building tests
 option(BUILD_TESTING "Build the testing tree" OFF)
+
+# Set compiler to clang for x86_64
+set(CMAKE_C_COMPILER "/usr/bin/clang")
+set(CMAKE_CXX_COMPILER "/usr/bin/clang++")
 
 # Force x86_64 architecture (must be before project declaration)
 set(CMAKE_OSX_ARCHITECTURES "x86_64")
@@ -21,9 +25,6 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-# Set compiler to clang for x86_64
-set(CMAKE_C_COMPILER "/usr/bin/clang")
-set(CMAKE_CXX_COMPILER "/usr/bin/clang++")
 
 # Add position-independent code flag
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
@@ -37,9 +38,9 @@ if(CMAKE_BUILD_TYPE STREQUAL "Debug")
     set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} ${SANITIZER_FLAGS}")
 endif()
 
-# Specify the x86_64 paths for Qt 6 - don't use the ARM version from Homebrew
-set(Qt6_DIR "/usr/local/Cellar/qt/6.9.0/lib/cmake/Qt6")
-set(CMAKE_PREFIX_PATH "/usr/local/Cellar/qt/6.9.0")
+# Specify the Qt 5.12 path - update this to your actual Qt 5.12 installation path
+set(Qt5_DIR "/Users/vojtadeconinck/MyQtApp/Qt5.12.0/5.12.0/clang_64/lib/cmake/Qt5")
+set(CMAKE_PREFIX_PATH "/Users/vojtadeconinck/Qt5.12.0/5.12.0/clang_64")
 
 # Set RPATH settings for easy development
 set(CMAKE_SKIP_BUILD_RPATH FALSE)
@@ -47,8 +48,8 @@ set(CMAKE_BUILD_WITH_INSTALL_RPATH FALSE)
 set(CMAKE_INSTALL_RPATH "${CMAKE_PREFIX_PATH}/lib")
 set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 
-# Find Qt6 components
-find_package(Qt6 REQUIRED COMPONENTS Widgets Core Gui)
+# Find Qt5 components
+find_package(Qt5 REQUIRED COMPONENTS Widgets Core Gui)
 
 # Path to the x86_64 OpenCV
 set(OpenCV_DIR "/usr/local/lib/cmake/opencv4")
@@ -62,7 +63,7 @@ if(BUILD_TESTING)
     FetchContent_Declare(
         Catch2
         GIT_REPOSITORY https://github.com/catchorg/Catch2.git
-        GIT_TAG v3.4.0  # Use a specific version for reproducibility
+        GIT_TAG v2.13.7  # Use an older version compatible with C++17
     )
     FetchContent_MakeAvailable(Catch2)
 endif()
@@ -71,7 +72,7 @@ endif()
 FetchContent_Declare(
     fmt
     GIT_REPOSITORY https://github.com/fmtlib/fmt.git
-    GIT_TAG 10.1.1  # Use a specific version for reproducibility
+    GIT_TAG 7.1.3  # Use an older version for better compatibility
 )
 FetchContent_MakeAvailable(fmt)
 
@@ -111,9 +112,9 @@ add_executable(MyQtApp
 
 # Link libraries
 target_link_libraries(MyQtApp PRIVATE
-  Qt6::Core
-  Qt6::Widgets
-  Qt6::Gui
+  Qt5::Core
+  Qt5::Widgets
+  Qt5::Gui
   ${OpenCV_LIBS}
   fmt::fmt
 )
@@ -149,9 +150,9 @@ if(BUILD_TESTING)
     
     # Link test executable with Qt and Catch2
     target_link_libraries(unit_tests PRIVATE
-        Qt6::Core
-        Qt6::Widgets
-        Qt6::Gui
+        Qt5::Core
+        Qt5::Widgets
+        Qt5::Gui
         ${OpenCV_LIBS}
         fmt::fmt
         Catch2::Catch2WithMain
@@ -177,9 +178,8 @@ if(APPLE)
 
   # Comment out macdeployqt which bundles Qt libraries
   # find_program(MACDEPLOYQT_EXECUTABLE macdeployqt HINTS 
-  #   "/usr/local/opt/qt6/bin"
+  #   "/Users/vojtadeconinck/Qt5.12.0/5.12.0/clang_64/bin"
   #   "/usr/local/bin"
-  #   "/opt/homebrew/opt/qt6/bin"
   # )
   
   # if(MACDEPLOYQT_EXECUTABLE)
@@ -193,7 +193,7 @@ if(APPLE)
   
   # Instead, just set the RPATH for the executable to find Qt libraries at runtime
   set_target_properties(MyQtApp PROPERTIES
-    INSTALL_RPATH "@executable_path/../lib;/usr/local/Cellar/qt/6.9.0/lib"
+    INSTALL_RPATH "@executable_path/../lib;/Users/vojtadeconinck/Qt5.12.0/5.12.0/clang_64/lib"
     BUILD_WITH_INSTALL_RPATH TRUE
   )
 endif()
